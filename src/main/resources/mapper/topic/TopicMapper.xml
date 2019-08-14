@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TopicMapper">
+
+    <!-- 专题详情 -->
+    <select id="topicDetails" parameterType="pd" resultType="pd">
+        select
+            t.topic_id,
+            t.topic_name,
+            t.topic_img,
+            t.keywords,
+            t.description
+        from m_news_topic t
+        where t.del_flag = '0'
+        and t.topic_display = '1'
+        and t.topic_id = #{topic_id}
+    </select>
+            <!-- 查询专题下的栏目 -->
+    <select id="listColumnByTopic" parameterType="pd" resultType="pd">
+        select
+            c.column_id,
+            c.column_name
+        from m_news_topic t,m_news_topic_column tc, m_columnmanagement c
+        where t.topic_id = tc.topic_id
+        and tc.column_id = c.column_id
+        and t.del_flag = '0'
+        and c.del_flag = '0'
+        and t.topic_id = #{topic_id}
+        order by c.order_num
+    </select>
+
+    <!-- 专题列表 -->
+    <select id="listTopic" parameterType="pd" resultType="pd">
+        select
+        t.topic_id,
+        t.topic_name,
+        t.topic_img
+        from m_news_topic t
+        where t.del_flag = '0'
+        <choose>
+            <when test="unit_in!=null and unit_in">
+                and t.unit_id in
+                <foreach collection="unit_ids" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </when>
+            <otherwise>
+                and t.unit_id = #{unit_id}
+            </otherwise>
+        </choose>
+        <if test="order_by==null or order_by=='0'">
+            order by t.topic_order
+        </if>
+        <if test="order_by=='2'">
+            order by t.create_time desc
+        </if>
+        <if test="order_by=='3'">
+            order by t.create_time asc
+        </if>
+        <if test="order_by=='4'">
+            order by t.update_time desc
+        </if>
+        <if test="order_by=='5'">
+            order by t.update_time asc
+        </if>
+        <choose>
+            <when test="top_size != null">
+                limit 0,${top_size}
+            </when>
+            <otherwise>
+                limit ${start},${page_size}
+            </otherwise>
+        </choose>
+    </select>
+    <!-- 专题数量 -->
+    <select id="countListTopic" parameterType="pd" resultType="java.lang.Long">
+        select
+        count(1)
+        from m_news_topic t
+        where t.del_flag = '0'
+        <choose>
+            <when test="unit_in!=null and unit_in">
+                and t.unit_id in
+                <foreach collection="unit_ids" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </when>
+            <otherwise>
+                and t.unit_id = #{unit_id}
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

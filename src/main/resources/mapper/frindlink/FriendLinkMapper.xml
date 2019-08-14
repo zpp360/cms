@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="FriendLinkMapper">
+
+    <!-- 友情链接列表 -->
+    <select id="listFriendLink" parameterType="pd" resultType="pd">
+        select
+        t.link_name,
+        <if test="has_img == 1">
+            t.link_img,
+        </if>
+        t.link_url
+        from m_friendlink t
+        where t.unit_id = #{unit_id}
+        and t.link_category = #{link_category}
+        and link_display = '1'
+        <if test="has_img == 1">
+            and t.link_img is not null
+            and t.link_img <![CDATA[  <>  ]]> ''
+        </if>
+        <if test="has_img == 2">
+            and (t.link_img is null or t.link_img = '')
+        </if>
+        order by t.order_num desc
+        <if test="top_size != null and top_size != ''">
+            limit 0,${top_size}
+        </if>
+    </select>
+
+</mapper>
