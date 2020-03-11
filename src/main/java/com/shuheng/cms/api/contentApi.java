@@ -92,14 +92,15 @@ public class contentApi extends BaseApiController{
     /**
      * 如果一个上级单位，例如卫健委想建网站，卫健委下的医院把新闻推荐到上级后，卫健委接收才能在网站显示
      * 内容列表
-     * @param appRes   unit_id单位id column_id栏目id  has_img是否有标题图  has_digest是否有摘要
+     * @param apiRes   unit_id单位id column_id栏目id  has_img是否有标题图  has_digest是否有摘要
      * top_size取前几条，有此参数不分页     page_size每页数量， page_number页码
      * group_by不为空，根据名称去重，适用于轮播图
+     * keyword模糊查询标题关键字
      * @return
      */
     @ResponseBody
     @RequestMapping(value = "/contentList")
-    public ApiResponse contentList(ApiResponse appRes){
+    public ApiResponse contentList(ApiResponse apiRes){
         PageData pd = this.getPageData();
         pd = this.getPageInfo(pd);
         String unitId = pd.getString("unit_id");
@@ -107,8 +108,8 @@ public class contentApi extends BaseApiController{
         String topSize = pd.getString("top_size");
         try {
             if(StringUtils.isBlank(unitId)){
-                appRes.setErrorCode(ApiConstants.CODE_201);
-                return appRes;
+                apiRes.setErrorCode(ApiConstants.CODE_201);
+                return apiRes;
             }
             //top_size最大值30
             if(StringUtils.isNotBlank(topSize) && Integer.parseInt(topSize) > Const.INT_THIRTY){
@@ -134,28 +135,28 @@ public class contentApi extends BaseApiController{
             if(StringUtils.isBlank(topSize)){
                 //无top_size应该进行分页
                 Long count = contentService.countListContent(pd);
-                appRes.put("count", count);
+                apiRes.put("count", count);
             }
-            appRes.setDatas(list);
-            appRes.setErrorCode(ApiConstants.CODE_200);
+            apiRes.setDatas(list);
+            apiRes.setErrorCode(ApiConstants.CODE_200);
         } catch (Exception e) {
-            appRes.setErrorCode(ApiConstants.CODE_202);
+            apiRes.setErrorCode(ApiConstants.CODE_202);
             e.printStackTrace();
         }
-        return appRes;
+        return apiRes;
     }
 
     /**
      * 下级推荐新闻
      * 市直动态 param:3 和区市动态 param:4,5,6
-     * @param unit_id 省委老干部局单位id
-     * @param unit_type 下级单位类型 不传显示全部
-     * @param exclude_unit 排除的单位
+     * param unit_id 省委老干部局单位id
+     * param unit_type 下级单位类型 不传显示全部
+     * param exclude_unit 排除的单位
      * @return
      */
     @RequestMapping(value = "/listUpContent")
     @ResponseBody
-    public ApiResponse listUpContent(ApiResponse appRes){
+    public ApiResponse listUpContent(ApiResponse apiRes){
         PageData pd = this.getPageData();
         pd = this.getPageInfo(pd);
         String unitId = pd.getString("unit_id");
@@ -164,8 +165,8 @@ public class contentApi extends BaseApiController{
         String excludeUnit = pd.getString("exclude_unit");
         try {
             if(StringUtils.isBlank(unitId)){
-                appRes.setErrorCode(ApiConstants.CODE_201);
-                return appRes;
+                apiRes.setErrorCode(ApiConstants.CODE_201);
+                return apiRes;
             }
             //top_size最大值30
             if(StringUtils.isNotBlank(topSize) && Integer.parseInt(topSize) > Const.INT_THIRTY){
@@ -199,42 +200,42 @@ public class contentApi extends BaseApiController{
             if(StringUtils.isBlank(topSize)){
                 //无top_size应该进行分页
                 Long count = contentService.countListUpContent(pd);
-                appRes.put("count", count);
+                apiRes.put("count", count);
             }
-            appRes.setDatas(list);
-            appRes.setErrorCode(ApiConstants.CODE_200);
+            apiRes.setDatas(list);
+            apiRes.setErrorCode(ApiConstants.CODE_200);
         } catch (Exception e) {
-            appRes.setErrorCode(ApiConstants.CODE_202);
+            apiRes.setErrorCode(ApiConstants.CODE_202);
             e.printStackTrace();
         }
-        return appRes;
+        return apiRes;
     }
 
     /**
      * 内容详情
      * news模型的内容，video模型的内容和download模型的内容
-     * @param appRes
+     * @param apiRes
      * @return
      */
     @RequestMapping(value = "/newsDetails")
     @ResponseBody
-    public ApiResponse newsDetails(ApiResponse appRes){
+    public ApiResponse newsDetails(ApiResponse apiRes){
         PageData  pd = this.getPageData();
         String id = pd.getString("news_id");
         String model = pd.getString("news_model");
         if(StringUtils.isBlank(id) || StringUtils.isBlank(model)){
-            appRes.setErrorCode(ApiConstants.CODE_201);
-            return appRes;
+            apiRes.setErrorCode(ApiConstants.CODE_201);
+            return apiRes;
         }
         try {
             pd = contentService.newsDetails(pd);
-            appRes.setData(pd);
-            appRes.setErrorCode(ApiConstants.CODE_200);
+            apiRes.setData(pd);
+            apiRes.setErrorCode(ApiConstants.CODE_200);
         } catch (Exception e) {
-            appRes.setErrorCode(ApiConstants.CODE_202);
+            apiRes.setErrorCode(ApiConstants.CODE_202);
             e.printStackTrace();
         }
-        return appRes;
+        return apiRes;
     }
 
     /**
@@ -242,19 +243,19 @@ public class contentApi extends BaseApiController{
      * has_img是否有图片  0所有，1有，2没有。默认为所有
      * top_size取前多少条
      * 按照排序号码降序排序
-     * @param appRes
+     * @param apiRes
      * @return
      */
     @RequestMapping(value = "/friendlinkList")
     @ResponseBody
-    public ApiResponse friendlinkList(ApiResponse appRes){
+    public ApiResponse friendlinkList(ApiResponse apiRes){
         PageData  pd = this.getPageData();
         String unitId = pd.getString("unit_id");
         String category = pd.getString("link_category");
         String topSize = pd.getString("top_size");
         if(StringUtils.isBlank(unitId) || StringUtils.isBlank(category)){
-            appRes.setErrorCode(ApiConstants.CODE_201);
-            return appRes;
+            apiRes.setErrorCode(ApiConstants.CODE_201);
+            return apiRes;
         }
 
         //top_size最大值30
@@ -264,13 +265,13 @@ public class contentApi extends BaseApiController{
 
         try {
             List<PageData> list = friendLinkService.listFriendLink(pd);
-            appRes.setDatas(list);
-            appRes.setErrorCode(ApiConstants.CODE_200);
+            apiRes.setDatas(list);
+            apiRes.setErrorCode(ApiConstants.CODE_200);
         } catch (Exception e) {
-            appRes.setErrorCode(ApiConstants.CODE_202);
+            apiRes.setErrorCode(ApiConstants.CODE_202);
             e.printStackTrace();
         }
-        return appRes;
+        return apiRes;
     }
 
     /**
@@ -283,19 +284,19 @@ public class contentApi extends BaseApiController{
      * 4更新时间降序
      * 5更新时间升序
      * top_size
-     * @param appRes
+     * @param apiRes
      * @return
      */
     @RequestMapping(value = "topicList")
     @ResponseBody
-    public ApiResponse topicList(ApiResponse appRes){
+    public ApiResponse topicList(ApiResponse apiRes){
         PageData pd = this.getPageData();
         pd = this.getPageInfo(pd);
         String unitId = pd.getString("unit_id");
         String topSize = pd.getString("top_size");
         if(StringUtils.isBlank(unitId)){
-            appRes.setErrorCode(ApiConstants.CODE_201);
-            return appRes;
+            apiRes.setErrorCode(ApiConstants.CODE_201);
+            return apiRes;
         }
         try {
             if(unitId.contains(Const.COMMAT)){
@@ -306,30 +307,30 @@ public class contentApi extends BaseApiController{
             if(StringUtils.isBlank(topSize)){
                 //无top_size应该进行分页
                 Long count = topicService.countListTopic(pd);
-                appRes.put("count", count);
+                apiRes.put("count", count);
             }
-            appRes.setDatas(list);
-            appRes.setErrorCode(ApiConstants.CODE_200);
+            apiRes.setDatas(list);
+            apiRes.setErrorCode(ApiConstants.CODE_200);
         } catch (Exception e) {
-            appRes.setErrorCode(ApiConstants.CODE_202);
+            apiRes.setErrorCode(ApiConstants.CODE_202);
             e.printStackTrace();
         }
-        return appRes;
+        return apiRes;
     }
 
     /**
      * 专题
-     * @param appRes
+     * @param apiRes
      * @return
      */
     @RequestMapping(value = "/topicDetails")
     @ResponseBody
-    public ApiResponse topic(ApiResponse appRes){
+    public ApiResponse topic(ApiResponse apiRes){
         PageData  pd = this.getPageData();
         String topicId = pd.getString("topic_id");
         if(StringUtils.isBlank(topicId)){
-            appRes.setErrorCode(ApiConstants.CODE_201);
-            return appRes;
+            apiRes.setErrorCode(ApiConstants.CODE_201);
+            return apiRes;
         }
         try {
             pd = topicService.topicDetails(pd);
@@ -337,13 +338,13 @@ public class contentApi extends BaseApiController{
                 List<PageData> list = topicService.listColumnByTopic(pd);
                 pd.put("column_list", list);
             }
-            appRes.setData(pd);
-            appRes.setErrorCode(ApiConstants.CODE_200);
+            apiRes.setData(pd);
+            apiRes.setErrorCode(ApiConstants.CODE_200);
         } catch (Exception e) {
-            appRes.setErrorCode(ApiConstants.CODE_202);
+            apiRes.setErrorCode(ApiConstants.CODE_202);
             e.printStackTrace();
         }
-        return appRes;
+        return apiRes;
     }
 
 }

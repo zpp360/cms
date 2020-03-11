@@ -58,4 +58,27 @@ public class BaseApiController {
         pd.put("page_size", Integer.parseInt(pageSize));
         return pd;
     }
+
+    /**
+     * 获取分页信息
+     * @return
+     */
+    public PageData getPageInfo(){
+        PageData pd = this.getPageData();
+        String pageNumber = pd.getString("page_number");
+        String pageSize = pd.getString("page_size");
+        if(StringUtils.isBlank(pageSize)){
+            pageSize = this.pageSize;
+        }
+        int start = 0;
+        if (StringUtils.isNotBlank(pageNumber)) {
+            int pageNum = Integer.parseInt(pageNumber);
+            if(pageNum>0){
+                start = (pageNum-1)* Integer.parseInt(pageSize);
+            }
+        }
+        pd.put("start", start);
+        pd.put("page_size", Integer.parseInt(pageSize));
+        return pd;
+    }
 }

@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="VolunteerMapper">
+
+
+    <select id="listNews" parameterType="pd" resultType="pd">
+        select
+            t.news_id,
+            t.news_title,
+            t.news_source,
+            date_format(t.release_time,"%Y-%m-%d") AS release_time,
+            <if test="has_digest==1">
+                t.news_digest,
+            </if>
+            t.news_img
+        from m_volunteer_news t
+        left join m_volunteer_association a
+        on t.association_id = a.association_id and a.del_flag = '0'
+        left join m_volunteer_organization o
+        on t.organization_id = o.organization_id and o.del_flag = '0'
+        where t.del_flag = '0'
+        <choose>
+            <when test="form_limit==1">
+                and t.association_id is not NULL
+                and t.association_id  <![CDATA[  <>  ]]> ''
+                and a.association_province = #{province}
+                <if test="city!=null and city!=''">
+                    and a.association_city = #{city}
+                </if>
+            </when>
+            <when test="form_limit==2">
+                and t.organization_id is not NULL
+                and t.organization_id <![CDATA[  <>  ]]> ''
+                and o.organization_province = #{province}
+                <if test="city!=null and city!=''">
+                    and o.organization_city = #{city}
+                </if>
+            </when>
+            <otherwise>
+                and (a.association_province = #{province} or o.organization_province = #{province})
+                <if test="city!=null and city!=''">
+                and (a.association_city = #{city} or o.organization_city = #{city})
+                </if>
+            </otherwise>
+        </choose>
+
+        <choose>
+            <when test="exclude_ids_in!=null and exclude_ids_in">
+                and t.news_id not in
+                <foreach collection="exclude_ids_arr" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </when>
+            <otherwise>
+                <if test="exclude_ids!=null and exclude_ids!=''">
+                    and t.news_id <![CDATA[  <>  ]]> #{exclude_ids}
+                </if>
+            </otherwise>
+        </choose>
+
+        <if test="has_img == 1">
+            and t.news_img is not null
+            and t.news_img <![CDATA[  <>  ]]> ''
+        </if>
+        <if test="has_img == 2">
+            and (t.news_img is null or t.news_img = '')
+        </if>
+
+        <if test="group_by != null and group_by != ''">
+            GROUP BY t.news_title
+        </if>
+        <if test="order_by==null or order_by=='0'">
+            order by t.release_time desc
+        </if>
+        <if test="order_by=='1'">
+            order by t.release_time asc
+        </if>
+        <if test="order_by=='2'">
+            order by t.create_time desc
+        </if>
+        <if test="order_by=='3'">
+            order by t.create_time asc
+        </if>
+        <if test="order_by=='4'">
+            order by t.update_time desc
+        </if>
+        <if test="order_by=='5'">
+            order by t.update_time asc
+        </if>
+        <choose>
+            <when test="top_size != null">
+                limit 0,${top_size}
+            </when>
+            <otherwise>
+                limit ${start},${page_size}
+            </otherwise>
+        </choose>
+
+    </select>
+
+    <select id="countListNews" parameterType="pd" resultType="java.lang.Long">
+        select
+          count(1)
+        from m_volunteer_news t
+        left join m_volunteer_association a
+        on t.association_id = a.association_id and a.del_flag = '0'
+        left join m_volunteer_organization o
+        on t.organization_id = o.organization_id and o.del_flag = '0'
+        where t.del_flag = '0'
+        <choose>
+            <when test="form_limit==1">
+                and t.association_id is not NULL
+                and t.association_id  <![CDATA[  <>  ]]> ''
+                and a.association_province = #{province}
+                <if test="city!=null and city!=''">
+                    and a.association_city = #{city}
+                </if>
+            </when>
+            <when test="form_limit==2">
+                and t.organization_id is not NULL
+                and t.organization_id <![CDATA[  <>  ]]> ''
+                and o.organization_province = #{province}
+                <if test="city!=null and city!=''">
+                    and o.organization_city = #{city}
+                </if>
+            </when>
+            <otherwise>
+                and (a.association_province = #{province} or o.organization_province = #{province})
+                <if test="city!=null and city!=''">
+                    and (a.association_city = #{city} or o.organization_city = #{city})
+                </if>
+            </otherwise>
+        </choose>
+
+        <choose>
+            <when test="exclude_ids_in!=null and exclude_ids_in">
+                and t.news_id not in
+                <foreach collection="exclude_ids_arr" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </when>
+            <otherwise>
+                <if test="exclude_ids!=null and exclude_ids!=''">
+                    and t.news_id <![CDATA[  <>  ]]> #{exclude_ids}
+                </if>
+            </otherwise>
+        </choose>
+
+        <if test="has_img == 1">
+            and t.news_img is not null
+            and t.news_img <![CDATA[  <>  ]]> ''
+        </if>
+        <if test="has_img == 2">
+            and (t.news_img is null or t.news_img = '')
+        </if>
+
+        <if test="group_by != null and group_by != ''">
+            GROUP BY t.news_title
+        </if>
+    </select>
+
+    <!--招募活动列表-->
+    <select id="listActive" parameterType="pd" resultType="pd">
+      select
+        t.active_id,
+        t.active_name,
+        t.active_img,
+        d.`value` as active_type,
+        t.active_address,
+        t.active_desc,
+        o.organization_name
+      from m_volunteer_active t
+      LEFT JOIN m_volunteer_organization o
+      on t.active_organization = o.organization_id and o.del_flag = '0'
+      left join m_volunteer_association a
+      on o.association_id = a.association_id and a.del_flag = '0'
+      INNER JOIN m_distinguish d
+      on t.active_type = d.distinguish_id and d.distinguish_key = 'V_ACTIVE_TYPE'
+      where t.del_flag = '0'
+      and t.tipoff_flag = '0'
+      and a.association_province = #{province}
+      <if test="city!=null and city!=''">
+        and a.association_city = #{city}
+      </if>
+      <if test="active_type!=null and active_type!=''">
+        and d.distinguish_id = #{active_type}
+      </if>
+      order by t.sign_end_time desc
+        <choose>
+            <when test="top_size != null">
+                limit 0,${top_size}
+            </when>
+            <otherwise>
+                limit ${start},${page_size}
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="countListActive" parameterType="pd" resultType="java.lang.Long">
+        select
+          count(1)
+        from m_volunteer_active t
+        LEFT JOIN m_volunteer_organization o
+        on t.active_organization = o.organization_id and o.del_flag = '0'
+        left join m_volunteer_association a
+        on o.association_id = a.association_id and a.del_flag = '0'
+        INNER JOIN m_distinguish d
+        on t.active_type = d.distinguish_id and d.distinguish_key = 'V_ACTIVE_TYPE'
+        where t.del_flag = '0'
+        and a.association_province = #{province}
+        <if test="city!=null and city!=''">
+            and a.association_city = #{city}
+        </if>
+        <if test="active_type!=null and active_type!=''">
+            and d.distinguish_id = #{active_type}
+        </if>
+    </select>
+
+    <!--公益讲堂-->
+    <select id="listClass" parameterType="pd" resultType="pd">
+      select
+        t.class_id as news_id,
+        t.class_name as news_title,
+        t.class_source as news_source,
+        date_format(t.create_time,"%Y-%m-%d") AS release_time,
+        t.class_img as news_img
+      from  m_volunteer_class t,m_volunteer_association a
+      where t.association_id = a.association_id
+      and t.del_flag = '0'
+      and a.del_flag = '0'
+      and a.association_province = #{province}
+      <if test="city!=null and city!=''">
+          and a.association_city = #{city}
+      </if>
+      <if test="order_by==null or order_by=='0'">
+          order by t.create_time desc
+      </if>
+      <if test="order_by=='1'">
+          order by t.create_time asc
+      </if>
+      <if test="order_by=='2'">
+          order by t.create_time desc
+      </if>
+      <if test="order_by=='3'">
+          order by t.create_time asc
+      </if>
+      <if test="order_by=='4'">
+          order by t.update_time desc
+      </if>
+      <if test="order_by=='5'">
+          order by t.update_time asc
+      </if>
+        <choose>
+            <when test="top_size != null">
+                limit 0,${top_size}
+            </when>
+            <otherwise>
+                limit ${start},${page_size}
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="countListClass" parameterType="pd" resultType="java.lang.Long">
+      select
+        count(1)
+      from  m_volunteer_class t,m_volunteer_association a
+      where t.association_id = a.association_id
+      and t.del_flag = '0'
+      and a.del_flag = '0'
+      and a.association_province = #{province}
+        <if test="city!=null and city!=''">
+            and a.association_city = #{city}
+        </if>
+    </select>
+    <!--组织列表-->
+    <select id="listOrganization" parameterType="pd" resultType="pd">
+        select
+            t.organization_id,
+            t.organization_name,
+            t.organization_img,
+            r.region_name as organization_city,
+            t.organization_desc,
+            (select count(1) from m_volunteer_organization_relation where organization_id = t.organization_id) as count
+        from m_volunteer_organization t,m_volunteer_association a,m_region_info r
+        where t.association_id = a.association_id
+        and t.organization_city = r.region_id
+        and t.del_flag = '0'
+        and a.del_flag = '0'
+        and t.status = '1'
+        and a.association_province = #{province}
+        <if test="city!=null and city!=''">
+            and a.association_city = #{city}
+        </if>
+        order by t.organization_love_hour desc, count desc, t.create_time asc
+        <choose>
+            <when test="top_size != null">
+                limit 0,${top_size}
+            </when>
+            <otherwise>
+                limit ${start},${page_size}
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="countListOrganization" parameterType="pd" resultType="java.lang.Long">
+        select
+          count(1)
+        from m_volunteer_organization t,m_volunteer_association a
+        where t.association_id = a.association_id
+        and t.del_flag = '0'
+        and a.del_flag = '0'
+        and t.status = '1'
+        and a.association_province = #{province}
+        <if test="city!=null and city!=''">
+            and a.association_city = #{city}
+        </if>
+    </select>
+
+
+    <select id="newsDetails" parameterType="pd" resultType="pd">
+        SELECT
+          t.news_title,
+          t.news_source,
+          t.news_img,
+          date_format(t.release_time,"%Y-%m-%d %H:%i") AS release_time,
+          t.news_content
+        from m_volunteer_news t
+        where t.del_flag = '0'
+        and t.news_id = #{news_id}
+    </select>
+
+    <select id="classDetails" parameterType="pd" resultType="pd">
+        SELECT
+          t.class_name as news_title,
+          t.class_source as news_source,
+          date_format(t.create_time,"%Y-%m-%d") AS release_time,
+          t.class_img as news_img,
+          t.class_txt as news_content
+        from m_volunteer_class t
+        where t.del_flag = '0'
+        and t.class_id = #{news_id}
+    </select>
+
+    <select id="orgDetails" parameterType="pd" resultType="pd">
+        select
+            t.organization_id,
+            t.organization_name,
+            t.organization_img,
+            r.region_name as organization_city,
+            t.organization_desc,
+            (select count(1) from m_volunteer_organization_relation where organization_id = t.organization_id) as count,
+            t.organization_linkman,
+            t.organization_phone,
+            t.organization_province_rank,
+            t.organization_love_hour
+        from m_volunteer_organization t,m_volunteer_association a,m_region_info r
+        where t.association_id = a.association_id
+        and t.organization_city = r.region_id
+        and t.del_flag = '0'
+        and a.del_flag = '0'
+        and t.status = '1'
+        and t.organization_id = #{organization_id}
+    </select>
+
+    <select id="listVolunteerStars" parameterType="pd" resultType="pd">
+        select
+			u.user_name,
+			u.user_pic,
+			u.user_id,
+			v.volunteer_id,
+			u.user_phone,
+			v.volunteer_love_hour,
+			v.volunteer_city_rank
+		FROM m_volunteer_organization t, m_volunteer_organization_relation r,m_volunteer v,m_user u
+		where t.organization_id = r.organization_id
+		and r.volunteer_id = v.volunteer_id
+		and v.user_id = u.user_id
+		and r.status = '1'
+		and t.organization_id = #{organization_id}
+		order by v.volunteer_love_hour desc,v.volunteer_city_rank asc
+		limit 0,5
+    </select>
+
+    <select id="activeDetails" parameterType="pd" resultType="pd">
+      select
+        t.active_id,
+        t.active_name,
+        t.active_img,
+        d.`value` as active_type,
+        t.active_address,
+        t.active_count,
+        date_format(t.sign_end_time,"%Y年%m月%d日 %H:%i") as sign_end_time,
+        date_format(t.active_start_time,"%Y年%m月%d日 %H:%i") as active_start_time,
+        date_format(t.active_end_time,"%Y年%m月%d日 %H:%i") as active_end_time,
+        t.active_linkman,
+        t.active_linkman_phone,
+        t.active_count,
+        (select count(1) from m_volunteer_active_relation where active_id = t.active_id) as has_active_count,
+        t.active_desc,
+        o.organization_name,
+        now() > t.active_end_time as out_end_time,
+        now() between t.active_start_time and t.active_end_time as can_sign
+      from m_volunteer_active t
+      LEFT JOIN m_volunteer_organization o
+      on t.active_organization = o.organization_id and o.del_flag = '0'
+      left join m_volunteer_association a
+      on o.association_id = a.association_id and a.del_flag = '0'
+      INNER JOIN m_distinguish d
+      on t.active_type = d.distinguish_id and d.distinguish_key = 'V_ACTIVE_TYPE'
+      where t.del_flag = '0'
+      and t.tipoff_flag = '0'
+      and t.active_id = #{active_id}
+    </select>
+
+    <select id="listActiveType" parameterType="pd" resultType="pd">
+      SELECT
+		t.distinguish_id as active_type,
+		t.`value` as type_name
+	  FROM m_distinguish t
+	  where t.del_flg = 0
+	  and t.distinguish_key = #{key}
+	  order by t.sort
+    </select>
+
+
+    <select id="volunteerProvinceRank" parameterType="pd" resultType="pd">
+        select
+			t.volunteer_id,
+			t.volunteer_province_rank as rank,
+			u.user_name,
+			t.volunteer_love_hour,
+            u.user_pic
+		from m_volunteer t,m_user u
+		where t.user_id = u.user_id
+		and u.del_flag = 0
+		and t.volunteer_province = #{province}
+        <if test="city!=null and city!=''">
+            and t.volunteer_city = #{city}
+        </if>
+		order by if(isnull(t.volunteer_province_rank),0,1) desc, t.volunteer_province_rank asc
+        <choose>
+            <when test="top_size != null">
+                limit 0,${top_size}
+            </when>
+            <otherwise>
+                limit ${start},${page_size}
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="countVolunteerRank" parameterType="pd" resultType="java.lang.Long">
+        select
+			count(1)
+		from m_volunteer t,m_user u
+		where t.user_id = u.user_id
+		and u.del_flag = 0
+		and t.volunteer_province = #{province}
+        <if test="city!=null and city!=''">
+            and t.volunteer_city = #{city}
+        </if>
+    </select>
+
+    <select id="orgProvinceRankList" parameterType="pd" resultType="pd">
+        select
+			t.organization_id,
+			t.organization_province_rank as rank,
+			t.organization_name,
+			t.organization_love_hour,
+            t.organization_img
+		from m_volunteer_organization t
+		where t.del_flag = '0'
+		and t.status = '1'
+		and t.organization_province = #{province}
+        <if test="city!=null and city!=''">
+            and t.organization_city = #{city}
+        </if>
+		order by if(isnull(t.organization_province_rank),0,1) desc, t.organization_province_rank asc
+        <choose>
+            <when test="top_size != null">
+                limit 0,${top_size}
+            </when>
+            <otherwise>
+                limit ${start},${page_size}
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="countOrgRankList" parameterType="pd" resultType="java.lang.Long">
+        select
+          count(1)
+        from m_volunteer_organization t
+        where t.del_flag = '0'
+        and t.status = '1'
+        and t.organization_province = #{province}
+        <if test="city!=null and city!=''">
+            and t.organization_city = #{city}
+        </if>
+    </select>
+</mapper>

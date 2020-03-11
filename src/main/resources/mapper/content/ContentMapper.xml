@@ -49,6 +49,9 @@
                 </otherwise>
             </choose>
         </if>
+        <if test="keywords != null and keywords != ''">
+            and t.news_title LIKE CONCAT('%',#{keywords},'%')
+        </if>
         <if test="news_push_p != null and news_push_p != ''">
             and t.news_push_p = '1'
         </if>
