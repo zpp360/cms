@@ -227,7 +227,9 @@
                 </foreach>
             </when>
             <otherwise>
-                and u.from_unit <![CDATA[  <>  ]]> #{exclude_unit}
+                <if test="exclude_unit != null and exclude_unit!=''">
+                    and u.from_unit <![CDATA[  <>  ]]> #{exclude_unit}
+                </if>
             </otherwise>
         </choose>
         <if test="has_img == 1">
@@ -318,7 +320,9 @@
                 </foreach>
             </when>
             <otherwise>
-                and u.from_unit <![CDATA[  <>  ]]> #{exclude_unit}
+                <if test="exclude_unit != null and exclude_unit!=''">
+                  and u.from_unit <![CDATA[  <>  ]]> #{exclude_unit}
+                </if>
             </otherwise>
         </choose>
         <if test="has_img == 1">
@@ -335,38 +339,6 @@
         <if test="has_digest == 2">
             and (t.news_digest is null or t.news_digest = '')
         </if>
-        <if test="order_by==null or order_by=='0'">
-            order by t.top_level desc,t.release_time desc
-        </if>
-        <if test="order_by=='1'">
-            order by t.release_time asc
-        </if>
-        <if test="order_by=='2'">
-            order by t.create_date desc
-        </if>
-        <if test="order_by=='3'">
-            order by t.create_date asc
-        </if>
-        <if test="order_by=='4'">
-            order by t.update_date desc
-        </if>
-        <if test="order_by=='5'">
-            order by t.update_date asc
-        </if>
-        <if test="order_by=='6'">
-            order by t.top_level desc,t.release_time desc
-        </if>
-        <if test="order_by=='7'">
-            order by t.top_level asc,t.release_time desc
-        </if>
-        <choose>
-            <when test="top_size != null">
-                limit 0,${top_size}
-            </when>
-            <otherwise>
-                limit ${start},${page_size}
-            </otherwise>
-        </choose>
     </select>
 
 
