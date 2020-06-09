@@ -61,4 +61,13 @@ public class ContentService {
     public PageData newsDetails(PageData pd) throws Exception {
         return (PageData) dao.findForObject("ContentMapper.newsDetails", pd);
     }
+    /**
+     *  家园号列表，按新闻发布时间排序
+     * @return
+     * @throws Exception
+     */
+    public List<PageData> homeNumberList() throws Exception {
+        return (List<PageData>) dao.findForList("ContentMapper.homeNumberList", null);
+    }
+
 }

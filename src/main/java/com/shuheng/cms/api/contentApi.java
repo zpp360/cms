@@ -347,4 +347,22 @@ public class contentApi extends BaseApiController{
         return apiRes;
     }
 
+    /**
+     * 家园号列表
+     * @param apiRes
+     * @return
+     */
+    @RequestMapping(value = "/homeNumberList")
+    @ResponseBody
+    public ApiResponse homeNumberList(ApiResponse apiRes){
+        try {
+            List<PageData> list = this.contentService.homeNumberList();
+            apiRes.setDatas(list);
+            apiRes.setErrorCode(ApiConstants.CODE_200);
+        } catch (Exception e) {
+            apiRes.setErrorCode(ApiConstants.CODE_202);
+            e.printStackTrace();
+        }
+        return apiRes;
+    }
 }

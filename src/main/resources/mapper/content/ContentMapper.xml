@@ -361,4 +361,22 @@
         and t.news_id = #{news_id}
     </select>
 
+    <!-- 家园号列表，按新闻发布时间排序 -->
+    <select id="homeNumberList" resultType="pd">
+        SELECT
+            n.unit_id,
+            u.UNIT_NAME_FULL
+        FROM
+            m_news n
+        LEFT JOIN m_unit u ON n.unit_id = u.UNIT_ID
+        LEFT JOIN m_unit_status s ON u.UNIT_ID = s.unit_id
+        WHERE
+            n.del_flg = 0
+        AND u.DEL_FLG = 0
+        AND u.PROVINCE = '16'
+        AND u.unit_type = '3'
+        AND s.`status` = '7'
+        GROUP BY n.unit_id
+        ORDER BY max(n.release_time) DESC
+    </select>
 </mapper>
