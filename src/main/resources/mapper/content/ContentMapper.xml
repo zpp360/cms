@@ -379,4 +379,28 @@
         GROUP BY n.unit_id
         ORDER BY max(n.release_time) DESC
     </select>
+
+    <!-- 查询查看数 -->
+    <select id="findCountById" parameterType="pd" resultType="pd">
+        select
+        *
+        from m_news_count t
+        where t.news_id = #{news_id}
+    </select>
+    <!-- 插入count -->
+    <insert id="insertCount" parameterType="pd">
+        insert into m_news_count(
+        news_id,
+        views
+        )value(
+        #{news_id},
+        1
+        )
+    </insert>
+
+    <update id="updateViews" parameterType="pd">
+        update m_news_count
+        set views = views+1
+        where news_id = #{news_id}
+    </update>
 </mapper>

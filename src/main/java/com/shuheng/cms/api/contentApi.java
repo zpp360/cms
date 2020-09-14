@@ -229,6 +229,10 @@ public class contentApi extends BaseApiController{
         }
         try {
             pd = contentService.newsDetails(pd);
+            if (pd != null) {
+                PageData viewPd = contentService.views(pd);
+                pd.put("views", viewPd.get("views"));
+            }
             apiRes.setData(pd);
             apiRes.setErrorCode(ApiConstants.CODE_200);
         } catch (Exception e) {
