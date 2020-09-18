@@ -355,7 +355,8 @@
             t.news_file_path as news_file,
             t.news_file_name,
         </if>
-        date_format(t.release_time,"%Y-%m-%d %H:%i") AS release_time
+        date_format(t.release_time,"%Y-%m-%d %H:%i") AS release_time,
+        (t.app_views + t.web_views) as views
         from m_news t
         where t.del_flg = '0'
         and t.news_id = #{news_id}
@@ -399,8 +400,8 @@
     </insert>
 
     <update id="updateViews" parameterType="pd">
-        update m_news_count
-        set views = views+1
-        where news_id = #{news_id}
+        update m_news
+		set web_views = web_views+1
+		where news_id = #{news_id}
     </update>
 </mapper>

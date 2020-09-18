@@ -72,20 +72,13 @@ public class ContentService {
     }
 
     /**
-     * 阅读数
+     * 阅读数++
      * @param pd
      * @return
      */
     public PageData views(PageData pd) throws Exception {
-        PageData viewPd = (PageData) dao.findForObject("ContentMapper.findCountById", pd);
-        if(viewPd==null){
-            dao.save("ContentMapper.insertCount", pd);
-            viewPd = new PageData();
-            viewPd.put("views", Const.INT_ONE);
-        }else{
-            dao.update("ContentMapper.updateViews", pd);
-            viewPd.put("views",(long)viewPd.get("views")+1);
-        }
-        return viewPd;
+        dao.update("ContentMapper.updateViews", pd);
+        pd.put("views",(long)pd.get("views")+1);
+        return pd;
     }
 }

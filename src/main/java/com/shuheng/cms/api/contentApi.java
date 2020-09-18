@@ -8,12 +8,16 @@ import com.shuheng.cms.server.ContentService;
 import com.shuheng.cms.server.FriendLinkService;
 import com.shuheng.cms.server.TopicService;
 import com.shuheng.cms.utils.Const;
+import com.shuheng.cms.utils.JdbcUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -230,8 +234,9 @@ public class contentApi extends BaseApiController{
         try {
             pd = contentService.newsDetails(pd);
             if (pd != null) {
-                PageData viewPd = contentService.views(pd);
-                pd.put("views", viewPd.get("views"));
+                //更新阅读数
+                updateWebViews(pd);
+                pd.put("views", (long)pd.get("views")+1);
             }
             apiRes.setData(pd);
             apiRes.setErrorCode(ApiConstants.CODE_200);
@@ -240,6 +245,28 @@ public class contentApi extends BaseApiController{
             e.printStackTrace();
         }
         return apiRes;
+    }
+
+    /**更新阅读数
+     * @param pd
+     * @throws Exception
+     */
+    private void updateWebViews(PageData pd) throws Exception {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        try {
+            connection = JdbcUtils.getConnection();
+            connection.setAutoCommit(false);
+            String sql = "update m_news set web_views = web_views+1 where news_id = ?";
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, pd.getString("news_id"));
+            int num = preparedStatement.executeUpdate();
+            connection.commit();
+        } catch (Exception e) {
+            connection.rollback();
+        } finally {
+            JdbcUtils.releaseDB(connection, preparedStatement, null);
+        }
     }
 
     /**
