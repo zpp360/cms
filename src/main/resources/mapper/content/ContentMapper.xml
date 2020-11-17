@@ -11,6 +11,7 @@
         t.news_picturePath as news_img,
         t.news_digest,
         t.news_source,
+        t.ups,
         t.news_model
         from m_news t, m_columnmanagement c
         where t.column_id = c.column_id
@@ -351,6 +352,7 @@
         t.news_digest,
         t.news_content,
         t.news_video,
+        t.ups,
         <if test="news_model=='download'">
             t.news_file_path as news_file,
             t.news_file_name,
@@ -402,6 +404,12 @@
     <update id="updateViews" parameterType="pd">
         update m_news
 		set web_views = web_views+1
+		where news_id = #{news_id}
+    </update>
+
+    <update id="ups" parameterType="pd">
+        update m_news
+		set ups = ups+1
 		where news_id = #{news_id}
     </update>
 </mapper>

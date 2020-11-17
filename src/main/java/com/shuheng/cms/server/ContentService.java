@@ -81,4 +81,8 @@ public class ContentService {
         pd.put("views",(long)pd.get("views")+1);
         return pd;
     }
+
+    public void ups(PageData pd) throws Exception {
+        dao.update("ContentMapper.ups",pd);
+    }
 }

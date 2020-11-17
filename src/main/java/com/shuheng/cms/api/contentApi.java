@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -260,7 +259,30 @@ public class contentApi extends BaseApiController{
             String sql = "update m_news set web_views = web_views+1 where news_id = ?";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, pd.getString("news_id"));
-            int num = preparedStatement.executeUpdate();
+            preparedStatement.executeUpdate();
+            connection.commit();
+        } catch (Exception e) {
+            connection.rollback();
+        } finally {
+            JdbcUtils.releaseDB(connection, preparedStatement, null);
+        }
+    }
+
+    /**
+     * 更新点赞数
+     * @param pd
+     * @throws Exception
+     */
+    private void updateUps(PageData pd) throws Exception {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        try {
+            connection = JdbcUtils.getConnection();
+            connection.setAutoCommit(false);
+            String sql = "update m_news set ups = ups+1 where news_id = ?";
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, pd.getString("news_id"));
+            preparedStatement.executeUpdate();
             connection.commit();
         } catch (Exception e) {
             connection.rollback();
@@ -394,6 +416,36 @@ public class contentApi extends BaseApiController{
             apiRes.setErrorCode(ApiConstants.CODE_202);
             e.printStackTrace();
         }
+        return apiRes;
+    }
+
+    /**
+     * 点赞/投票
+     * @param apiRes
+     * @return
+     */
+    @RequestMapping(value = "/contentUps")
+    @ResponseBody
+    public ApiResponse contentUps(ApiResponse apiRes){
+        PageData  pd = this.getPageData();
+        String id = pd.getString("news_id");
+        if(StringUtils.isBlank(id)){
+            apiRes.setErrorCode(ApiConstants.CODE_201);
+            return apiRes;
+        }
+        try {
+            pd = contentService.newsDetails(pd);
+            if(pd==null){
+                apiRes.setErrorCode(ApiConstants.CODE_301);
+                return apiRes;
+            }
+            updateUps(pd);
+            apiRes.setErrorCode(ApiConstants.CODE_200);
+        } catch (Exception e) {
+            apiRes.setErrorCode(ApiConstants.CODE_202);
+            e.printStackTrace();
+        }
+
         return apiRes;
     }
 }
